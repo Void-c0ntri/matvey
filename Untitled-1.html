@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поймай пиво в бане с Матвеем</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+        
+        .overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%);
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            text-align: center;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #ff6b00;
+        }
+        
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            color: #ff6b00;
+            text-shadow: 2px 2px 4px #000;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            color: #ccc;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: rgba(40, 40, 40, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 0 15px rgba(255, 107, 0, 0.3);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            background-color: rgba(90, 58, 34, 0.7);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            gap: 10px;
+        }
+        
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-label {
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #ff6b00;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+        }
+        
+        .game-message {
+            text-align: center;
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: #ff6b00;
+            min-height: 40px;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-area-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+            background-color: #5a3a22;
+            background-image: url('https://images.unsplash.com/photo-1600566752355-35792bedcfea?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            border: 2px solid #3a2718;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #ff8c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .touch-controls {
+            display: none;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 10%;
+        }
+        
+        .touch-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 107, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            touch-action: manipulation;
+        }
+        
+        .instructions {
+            background-color: rgba(90, 58, 34, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: clamp(0.8rem, 3vw, 1rem);
+        }
+        
+        .instructions h2 {
+            color: #ff6b00;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
+        }
+        
+        .instructions ul {
+            list-style-type: none;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 30px;
+            line-height: 1.4;
+        }
+        
+        .instructions li:before {
+            content: "🍺";
+            position: absolute;
+            left: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .overlay {
+                padding: 10px;
+            }
+            
+            .game-container {
+                padding: 12px;
+                border-radius: 10px;
+            }
+            
+            .touch-controls {
+                display: flex;
+            }
+            
+            .instructions {
+                margin-top: 15px;
+                padding: 12px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            #gameCanvas {
+                max-height: 50vh;
+            }
+            
+            .instructions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <header>
+            <h1>Поймай пиво в бане с Матвеем</h1>
+            <p class="subtitle">Самая важная игра этого лета!</p>
+        </header>
+        
+        <div class="game-container">
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-label">Счет</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Пропущено</div>
+                    <div class="stat-value" id="missed">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Рекорд</div>
+                    <div class="stat-value" id="highscore">0</div>
+                </div>
+            </div>
+            
+            <div class="game-message" id="message"></div>
+            
+            <div class="game-area-container">
+                <canvas id="gameCanvas" width="800" height="500"></canvas>
+            </div>
+            
+            <div class="touch-controls">
+                <div class="touch-btn" id="leftBtn">←</div>
+                <div class="touch-btn" id="rightBtn">→</div>
+            </div>
+            
+            <div class="controls">
+                <button id="startBtn">Начать игру</button>
+                <button id="resetBtn">Сбросить</button>
+            </div>
+            
+            <div class="instructions">
+                <h2>Как играть?</h2>
+                <ul>
+                    <li>Используйте клавиши ← и → или кнопки ниже для управления</li>
+                    <li>Ловите падающие кружки пива, чтобы зарабатывать очки</li>
+                    <li>Не дайте пиву упасть на пол - за каждую пропущенную кружку штраф!</li>
+                    <li>После 10 пропущенных кружек игра заканчивается</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация игры
+        class BeerGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.scoreDisplay = document.getElementById('score');
+                this.missedDisplay = document.getElementById('missed');
+                this.highscoreDisplay = document.getElementById('highscore');
+                this.messageDisplay = document.getElementById('message');
+                this.startBtn = document.getElementById('startBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.leftBtn = document.getElementById('leftBtn');
+                this.rightBtn = document.getElementById('rightBtn');
+                
+                // Настройки игры
+                this.score = 0;
+                this.missed = 0;
+                this.highscore = localStorage.getItem('beerGameHighscore') || 0;
+                this.gameActive = false;
+                this.gameSpeed = 2;
+                this.lastTime = 0;
+                this.beers = [];
+                this.animationId = null;
+                
+                // Размеры персонажа
+                this.matveyWidth = 80;
+                this.matveyHeight = 120;
+                this.matveyX = this.canvas.width / 2 - this.matveyWidth / 2;
+                this.matveyY = this.canvas.height - this.matveyHeight - 10;
+                
+                // Настройки пива
+                this.beerWidth = 40;
+                this.beerHeight = 60;
+                this.beerSpawnRate = 1000; // мс
+                this.lastBeerSpawn = 0;
+                
+                // Управление
+                this.keys = {};
+                this.isLeftPressed = false;
+                this.isRightPressed = false;
+                this.moveSpeed = 8;
+                
+                // Изображения
+                this.background = new Image();
+                this.background.src = 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
+                
+                // Инициализация
+                this.init();
+            }
+            
+            init() {
+                // Установка размеров canvas
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Управление с клавиатуры
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key] = true;
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key] = false;
+                });
+                
+                // Управление мышью/касанием
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (!this.gameActive) return;
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.matveyX = e.clientX - rect.left - this.matveyWidth / 2;
+                    this.clampMatveyPosition();
+                });
+                
+                this.canvas.addEventListener('touchmove', (e) => {
+                    if (!this.gameActive) return;
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.matveyX = touch.clientX - rect.left - this.matveyWidth / 2;
+                    this.clampMatveyPosition();
+                }, { passive: false });
+                
+                // Сенсорные кнопки
+                this.leftBtn.addEventListener('touchstart', () => {
+                    this.isLeftPressed = true;
+                });
+                
+                this.leftBtn.addEventListener('touchend', () => {
+                    this.isLeftPressed = false;
+                });
+                
+                this.rightBtn.addEventListener('touchstart', () => {
+                    this.isRightPressed = true;
+                });
+                
+                this.rightBtn.addEventListener('touchend', () => {
+                    this.isRightPressed = false;
+                });
+                
+                // Кнопки управления
+                this.startBtn.addEventListener('click', () => this.startGame());
+                this.resetBtn.addEventListener('click', () => this.resetGame());
+                
+                // Установка рекорда
+                this.highscoreDisplay.textContent = this.highscore;
+                
+                // Начальная отрисовка
+                this.draw();
+            }
+            
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                const containerWidth = container.clientWidth;
+                const aspectRatio = this.canvas.height / this.canvas.width;
+                this.canvas.width = containerWidth;
+                this.canvas.height = containerWidth * aspectRatio;
+                
+                // Обновляем позицию Матвея
+                this.matveyY = this.canvas.height - this.matveyHeight - 10;
+                this.clampMatveyPosition();
+            }
+            
+            clampMatveyPosition() {
+                this.matveyX = Math.max(0, Math.min(this.matveyX, this.canvas.width - this.matveyWidth));
+            }
+            
+            startGame() {
+                if (this.gameActive) return;
+                
+                // Сброс значений
+                this.score = 0;
+                this.missed = 0;
+                this.gameSpeed = 2;
+                this.beers = [];
+                this.scoreDisplay.textContent = '0';
+                this.missedDisplay.textContent = '0';
+                this.showMessage('Лови пивко, Матвей!');
+                
+                this.gameActive = true;
+                this.startBtn.textContent = 'Идет игра...';
+                this.lastBeerSpawn = performance.now();
+                
+                // Запуск игрового цикла
+                this.lastTime = performance.now();
+                this.gameLoop(this.lastTime);
+            }
+            
+            gameLoop(timestamp) {
+                if (!this.gameActive) return;
+                
+                const deltaTime = timestamp - this.lastTime;
+                this.lastTime = timestamp;
+                
+                // Очистка canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Отрисовка фона
+                if (this.background.complete) {
+                    this.ctx.drawImage(this.background, 0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    this.ctx.fillStyle = '#5a3a22';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+                
+                // Управление
+                this.handleInput(deltaTime);
+                
+                // Создание нового пива
+                if (timestamp - this.lastBeerSpawn > this.beerSpawnRate / this.gameSpeed) {
+                    this.spawnBeer();
+                    this.lastBeerSpawn = timestamp;
+                }
+                
+                // Обновление и отрисовка пива
+                this.updateBeers(deltaTime);
+                
+                // Отрисовка Матвея
+                this.drawMatvey();
+                
+                // Продолжение игрового цикла
+                this.animationId = requestAnimationFrame((t) => this.gameLoop(t));
+            }
+            
+            handleInput(deltaTime) {
+                const moveAmount = this.moveSpeed * (deltaTime / 16);
+                
+                if (this.keys['ArrowLeft'] || this.isLeftPressed) {
+                    this.matveyX -= moveAmount;
+                }
+                if (this.keys['ArrowRight'] || this.isRightPressed) {
+                    this.matveyX += moveAmount;
+                }
+                
+                this.clampMatveyPosition();
+            }
+            
+            spawnBeer() {
+                const beerX = Math.random() * (this.canvas.width - this.beerWidth);
+                this.beers.push({
+                    x: beerX,
+                    y: -this.beerHeight,
+                    speed: (Math.random() * 2 + 2) * this.gameSpeed,
+                    caught: false
+                });
+            }
+            
+            updateBeers(deltaTime) {
+                for (let i = this.beers.length - 1; i >= 0; i--) {
+                    const beer = this.beers[i];
+                    
+                    // Обновление позиции
+                    beer.y += beer.speed * (deltaTime / 16);
+                    
+                    // Проверка столкновения с Матвеем
+                    if (
+                        beer.y + this.beerHeight >= this.matveyY &&
+                        beer.y <= this.matveyY + this.matveyHeight &&
+                        beer.x + this.beerWidth >= this.matveyX &&
+                        beer.x <= this.matveyX + this.matveyWidth &&
+                        !beer.caught
+                    ) {
+                        // Пиво поймано
+                        beer.caught = true;
+                        this.score++;
+                        this.scoreDisplay.textContent = this.score;
+                        this.showMessage('Отлично! +1 к градусу!');
+                        
+                        // Обновление рекорда
+                        if (this.score > this.highscore) {
+                            this.highscore = this.score;
+                            this.highscoreDisplay.textContent = this.highscore;
+                            localStorage.setItem('beerGameHighscore', this.highscore);
+                        }
+                    }
+                    
+                    // Пиво упало на пол
+                    if (beer.y >= this.canvas.height) {
+                        this.beers.splice(i, 1);
+                        if (!beer.caught) {
+                            this.missed++;
+                            this.missedDisplay.textContent = this.missed;
+                            this.showMessage('Эх, пропустил пивко...');
+                            
+                            // Конец игры
+                            if (this.missed >= 10) {
+                                this.endGame();
+                            }
+                        }
+                        continue;
+                    }
+                    
+                    // Отрисовка пива
+                    this.drawBeer(beer.x, beer.y);
+                }
+                
+                // Увеличение сложности
+                if (performance.now() - this.lastTime > 5000) {
+                    this.gameSpeed += 0.1;
+                }
+            }
+            
+            drawMatvey() {
+                // Тело
+                this.ctx.fillStyle = '#d4a76a'; // цвет кожи
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.matveyX + this.matveyWidth / 2,
+                    this.matveyY + this.matveyWidth / 3,
+                    this.matveyWidth / 3,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // Волосы
+                this.ctx.fillStyle = '#3a2718';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.matveyX + this.matveyWidth / 2,
+                    this.matveyY + this.matveyWidth / 3 - 5,
+                    this.matveyWidth / 3.5,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // Глаза
+                this.ctx.fillStyle = '#000';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.matveyX + this.matveyWidth / 2 - 10,
+                    this.matveyY + this.matveyWidth / 3,
+                    5,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.arc(
+                    this.matveyX + this.matveyWidth / 2 + 10,
+                    this.matveyY + this.matveyWidth / 3,
+                    5,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // Рот
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.matveyX + this.matveyWidth / 2,
+                    this.matveyY + this.matveyWidth / 3 + 10,
+                    10,
+                    0.1 * Math.PI,
+                    0.9 * Math.PI
+                );
+                this.ctx.stroke();
+                
+                // Тело (рубашка)
+                this.ctx.fillStyle = '#3a2718';
+                this.ctx.fillRect(
+                    this.matveyX + this.matveyWidth / 4,
+                    this.matveyY + this.matveyWidth / 2,
+                    this.matveyWidth / 2,
+                    this.matveyHeight - this.matveyWidth / 2
+                );
+                
+                // Ноги
+                this.ctx.fillRect(
+                    this.matveyX + this.matveyWidth / 4,
+                    this.matveyY + this.matveyHeight - 20,
+                    this.matveyWidth / 5,
+                    20
+                );
+                this.ctx.fillRect(
+                    this.matveyX + this.matveyWidth * 11/20,
+                    this.matveyY + this.matveyHeight - 20,
+                    this.matveyWidth / 5,
+                    20
+                );
+                
+                // Руки
+                this.ctx.fillStyle = '#d4a76a';
+                this.ctx.fillRect(
+                    this.matveyX,
+                    this.matveyY + this.matveyWidth / 2 + 10,
+                    this.matveyWidth / 4,
+                    this.matveyHeight / 3
+                );
+                this.ctx.fillRect(
+                    this.matveyX + this.matveyWidth * 3/4,
+                    this.matveyY + this.matveyWidth / 2 + 10,
+                    this.matveyWidth / 4,
+                    this.matveyHeight / 3
+                );
+            }
+            
+            drawBeer(x, y) {
+                // Основная часть кружки
+                this.ctx.fillStyle = '#f5a623';
+                this.ctx.beginPath();
+                this.ctx.roundRect(
+                    x + 5,
+                    y + 10,
+                    this.beerWidth - 10,
+                    this.beerHeight - 15,
+                    [0, 0, 5, 5]
+                );
+                this.ctx.fill();
+                
+                // Пена
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    x + this.beerWidth / 2,
+                    y + 15,
+                    (this.beerWidth - 10) / 2,
+                    Math.PI,
+                    0
+                );
+                this.ctx.fill();
+                
+                // Верх кружки
+                this.ctx.fillStyle = '#dddddd';
+                this.ctx.beginPath();
+                this.ctx.roundRect(
+                    x + 5,
+                    y + 5,
+                    this.beerWidth - 10,
+                    5,
+                    [2, 2, 0, 0]
+                );
+                this.ctx.fill();
+                
+                // Ручка кружки
+                this.ctx.strokeStyle = '#dddddd';
+                this.ctx.lineWidth = 5;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    x + this.beerWidth - 5,
+                    y + 25,
+                    10,
+                    -0.5 * Math.PI,
+                    0.5 * Math.PI
+                );
+                this.ctx.stroke();
+            }
+            
+            showMessage(text) {
+                this.messageDisplay.textContent = text;
+                setTimeout(() => {
+                    if (this.messageDisplay.textContent === text) {
+                        this.messageDisplay.textContent = '';
+                    }
+                }, 1000);
+            }
+            
+            endGame() {
+                this.gameActive = false;
+                cancelAnimationFrame(this.animationId);
+                this.showMessage(`Игра окончена! Твой счет: ${this.score}`);
+                this.startBtn.textContent = 'Играть снова';
+            }
+            
+            resetGame() {
+                this.endGame();
+                this.score = 0;
+                this.missed = 0;
+                this.scoreDisplay.textContent = '0';
+                this.missedDisplay.textContent = '0';
+                this.showMessage('Готов к новой попытке?');
+                this.draw();
+            }
+            
+            draw() {
+                // Очистка canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Отрисовка фона
+                if (this.background.complete) {
+                    this.ctx.drawImage(this.background, 0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    this.ctx.fillStyle = '#5a3a22';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+                
+                // Отрисовка Матвея
+                this.drawMatvey();
+            }
+        }
+        
+        // Создание игры при загрузке страницы
+        window.addEventListener('load', () => {
+            const game = new BeerGame();
+        });
+    </script>
+</body>
+</html>
